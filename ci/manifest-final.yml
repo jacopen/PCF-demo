@@ -4,4 +4,4 @@ applications:
   memory: 1024M 
   instances: 1
   host: pcfdemo-kkusama-production
-  path: ./target/pcfdemo.war
+  path: prepare-final//pcfdemo.war

@@ -46,8 +46,6 @@ fi
 inputWar=`find $inputDir -name '*.war'`
 outputWar="${outputDir}/${baseName}.war"
 
-cp -R $inputDir/ci $outputDir/ci
-
 echo "Renaming ${inputWar} to ${outputWar}"
 
 cp ${inputWar} ${outputWar}
