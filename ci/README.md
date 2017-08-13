@@ -172,3 +172,5 @@ The above process completely automates the bumping of the patch version. When it
 finally comes time to bump the minor or major version, you'll manually trigger the
 `minor` or `major` tasks.  The next time the pipeline is triggered, the artifact
 will be build using the new version values.
+
+

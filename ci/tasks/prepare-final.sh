@@ -49,3 +49,4 @@ outputWar="${outputDir}/${baseName}.war"
 echo "Renaming ${inputWar} to ${outputWar}"
 
 cp ${inputWar} ${outputWar}
+cp ${inputWar} "${outputDir}/pcf-demo.war"
