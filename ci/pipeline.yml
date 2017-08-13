@@ -117,7 +117,7 @@ jobs:
         file: pcfdemo/ci/tasks/prepare-final.yml
       - put: final-release
         params: { file: prepare-final/pcf-demo-*.war }
-      - put: cf-prod
+      - put: cf
         params:
           manifest: pcfdemo/ci/manifest-final.yml
           path: prepare-final/
