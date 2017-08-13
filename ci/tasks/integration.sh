@@ -27,4 +27,4 @@ fi
 
 cd $inputDir
 
-./mvnw clean verify
+#./mvnw clean verify
