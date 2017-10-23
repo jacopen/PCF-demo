@@ -2,6 +2,8 @@
 resources:
   - name: pcfdemo
     type: git
+    check_every: 1h
+    webhook_token: hogefugapiyo
     source:
       uri: {{github-uri}}
       branch: {{github-branch}}
