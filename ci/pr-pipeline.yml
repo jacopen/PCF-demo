@@ -34,15 +34,6 @@ resources:
       secret_access_key: {{s3-secret-access-key}}
       endpoint: {{s3-endpoint}}
 
-  - name: final-release
-    type: s3
-    source:
-      bucket: {{s3-bucket-releases}}
-      regexp: pcf-demo-(.*).war
-      access_key_id: {{s3-access-key-id}}
-      secret_access_key: {{s3-secret-access-key}}
-      endpoint: {{s3-endpoint}}
-
   - name: cf
     type: cf
     source:
@@ -70,16 +61,6 @@ jobs:
         params: &MAVENPARAMS
           MAVEN_OPTS: {{maven-opts}}
           MAVEN_CONFIG: {{maven-config}}
-        on_success:
-          put: pcfdemo
-          params:
-            path: pcfdemo
-            status: success
-        on_failure:
-          put: pcfdemo
-          params:
-            path: pcfdemo
-            status: failure
 
   - name: build-artifact
     serial_groups: [ version ]
@@ -119,26 +100,16 @@ jobs:
         file: pcfdemo/ci/tasks/integration.yml
         params:
           <<: *MAVENPARAMS
-
-  - name: ship-it
-    serial_groups: [ version ]
-    plan:
-      - get: candidate-release
-        passed: [ integration-test ]
-      - get: pcfdemo
-        passed: [ integration-test ]
-      - get: version
-        params: { bump: final }
-      - task: prepare-final
-        file: pcfdemo/ci/tasks/prepare-final.yml
-      - put: final-release
-        params: { file: prepare-final/pcf-demo-*.war }
-      - put: cf
-        params:
-          manifest: pcfdemo/ci/manifest-final.yml
-          path: prepare-final/pcf-demo.war
-      - put: version
-        params: { file: version/number }
+        on_success:
+          put: pcfdemo
+          params:
+            path: pcfdemo
+            status: success
+        on_failure:
+          put: pcfdemo
+          params:
+            path: pcfdemo
+            status: failure
 
   - name: major
     serial_groups: [ version ]
@@ -151,15 +122,6 @@ jobs:
     plan:
       - put: version
         params: { bump: minor, pre: rc }
-
-  - name: patch
-    serial_groups: [ version ]
-    plan:
-      - get: version
-        passed: [ ship-it ]
-        trigger: true
-      - put: version
-        params: { bump: patch, pre: rc }
 
 resource_types:
   - name: pull-request
