@@ -19,7 +19,7 @@ public class BootstrapDataPopulator implements InitializingBean {
 
         // Create DB table
 
-        LOG.info("...Bootstrapping completed");a
+        LOG.info("...Bootstrapping completed");
     }
 
    
