@@ -19,3 +19,9 @@ run:
   args: [
     --input-dir, pcfdemo
   ]
+outputs:
+  - name: out
+caches:
+  - path: .gradle/
+  - path: .m2/:w
+

@@ -1,0 +1,45 @@
+---
+jobs:
+  - name: unit-test
+    public: true
+    plan:
+      - get: pcfdemo
+        trigger: true
+      - task: unit
+        file: pcfdemo/ci/tasks/unit.yml
+        params: &MAVENPARAMS
+          MAVEN_OPTS: {{maven-opts}}
+          MAVEN_CONFIG: {{maven-config}}
+        on_success:
+          put: slack-alert
+          params:
+            channel: '#development'
+            text: |
+              BUILD SUCCEEDED
+              http://concourse.udcp.info/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+        on_failure:
+          put: slack-alert
+          params:
+            channel: '#development'
+            text: |
+              BUILD FAILED
+              http://concourse.udcp.info/teams/$BUILD_TEAM_NAME/pipelines/$BUILD_PIPELINE_NAME/jobs/$BUILD_JOB_NAME/builds/$BUILD_NAME
+
+resources:
+- name: slack-alert
+  type: slack-notification
+  source:
+    url: {{slack-webhook}} 
+- name: pcfdemo
+  type: git
+  webhook_token: hogefugapiyo
+  source:
+    uri: {{github-uri}}
+    branch: {{github-branch}}
+
+resource_types:
+- name: slack-notification
+  type: docker-image
+  source:
+    repository: cfcommunity/slack-notification-resource
+    tag: latest

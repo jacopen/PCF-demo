@@ -1,12 +1,19 @@
 ---
 resources:
-  - name: pcfdemo
+  - name: pcfdemo-source
     type: git
-    check_every: 1h
-    webhook_token: hogefugapiyo
     source:
       uri: {{github-uri}}
       branch: {{github-branch}}
+
+  - name: pcfdemo 
+    type: pull-request
+    webhook_token: hogefugapiyo
+    source:
+      access_token: {{github-access_token}}
+      private_key:  {{github-private_key}}
+      repo:         {{github-repo}}
+      base:         {{github-branch}}
 
   - name: version
     type: semver
@@ -27,15 +34,6 @@ resources:
       secret_access_key: {{s3-secret-access-key}}
       endpoint: {{s3-endpoint}}
 
-  - name: final-release
-    type: s3
-    source:
-      bucket: {{s3-bucket-releases}}
-      regexp: pcf-demo-(.*).war
-      access_key_id: {{s3-access-key-id}}
-      secret_access_key: {{s3-secret-access-key}}
-      endpoint: {{s3-endpoint}}
-
   - name: cf
     type: cf
     source:
@@ -47,11 +45,17 @@ resources:
       skip_cert_check: true
 
 jobs:
-  - name: unit-test
+  - name: unit-test-pr
     public: true
     plan:
+      - get: pcfdemo-source
       - get: pcfdemo
         trigger: true
+        version: every
+      - put: pcfdemo
+        params:
+          path: pcfdemo
+          status: pending
       - task: unit
         file: pcfdemo/ci/tasks/unit.yml
         params: &MAVENPARAMS
@@ -62,7 +66,7 @@ jobs:
     serial_groups: [ version ]
     plan:
       - get: pcfdemo
-        passed: [ unit-test ]
+        passed: [ unit-test-pr ]
         trigger: true
       - get: version
         params: { pre: rc }
@@ -96,26 +100,16 @@ jobs:
         file: pcfdemo/ci/tasks/integration.yml
         params:
           <<: *MAVENPARAMS
-
-  - name: ship-it
-    serial_groups: [ version ]
-    plan:
-      - get: candidate-release
-        passed: [ integration-test ]
-      - get: pcfdemo
-        passed: [ integration-test ]
-      - get: version
-        params: { bump: final }
-      - task: prepare-final
-        file: pcfdemo/ci/tasks/prepare-final.yml
-      - put: final-release
-        params: { file: prepare-final/pcf-demo-*.war }
-      - put: cf
-        params:
-          manifest: pcfdemo/ci/manifest-final.yml
-          path: prepare-final/pcf-demo.war
-      - put: version
-        params: { file: version/number }
+        on_success:
+          put: pcfdemo
+          params:
+            path: pcfdemo
+            status: success
+        on_failure:
+          put: pcfdemo
+          params:
+            path: pcfdemo
+            status: failure
 
   - name: major
     serial_groups: [ version ]
@@ -129,12 +123,9 @@ jobs:
       - put: version
         params: { bump: minor, pre: rc }
 
-  - name: patch
-    serial_groups: [ version ]
-    plan:
-      - get: version
-        passed: [ ship-it ]
-        trigger: true
-      - put: version
-        params: { bump: patch, pre: rc }
-
+resource_types:
+  - name: pull-request
+    type: docker-image
+    source:
+      repository: jtarchie/pr
+      tags: latest
