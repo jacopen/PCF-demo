@@ -1,6 +1,6 @@
 #!/bin/sh
 
-inputDir=  outputDir=  versionFile=  artifactId=  packaging=
+inputDir=  outputDir=  artifactId=  packaging=
 
 while [ $# -gt 0 ]; do
   case $1 in
@@ -10,10 +10,6 @@ while [ $# -gt 0 ]; do
       ;;
     -o | --output-dir )
       outputDir=$2
-      shift
-      ;;
-    -v | --version-file )
-      versionFile=$2
       shift
       ;;
     -a | --artifactId )
@@ -43,9 +39,6 @@ fi
 if [ ! -d "$outputDir" ]; then
   error_and_exit "missing output directory: $outputDir"
 fi
-if [ ! -f "$versionFile" ]; then
-  error_and_exit "missing version file: $versionFile"
-fi
 if [ -z "$artifactId" ]; then
   error_and_exit "missing artifactId!"
 fi
@@ -53,11 +46,10 @@ if [ -z "$packaging" ]; then
   error_and_exit "missing packaging!"
 fi
 
-version=`cat $versionFile`
-artifactName="${artifactId}-${version}.${packaging}"
+artifactName="${artifactId}.${packaging}"
 
 cd $inputDir
-./mvnw clean package -Pci -DversionNumber=$version
+./mvnw clean package -Pci
 
 # Copy war file to concourse output folder
 cd ..

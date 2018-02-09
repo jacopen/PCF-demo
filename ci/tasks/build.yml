@@ -13,7 +13,6 @@ params:
 
 inputs:
   - name: pcfdemo
-  - name: version
 
 outputs:
   - name: build
@@ -23,7 +22,6 @@ run:
   args: [
     --input-dir, pcfdemo,
     --output-dir, build,
-    --version-file, version/number,
     --artifactId, pcf-demo,
     --packaging, war
   ]
